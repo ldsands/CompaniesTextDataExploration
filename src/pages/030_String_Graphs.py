@@ -49,9 +49,8 @@ def graph_terms_by_date_prop(fig_dta: pl.DataFrame, term_col_names: list[str]):
             fig_dta = fig_dta.with_columns(
                 (pl.col(term) / pl.col("word_count")).alias(f"{term.replace('_count', '_prop')}")
             )
-    term_prop_cols = [term.replace("_count", "_prop") for term in term_col_names]
     # st.write(fig_dta)  # TEMPPRINT:
-    fig = px.line(fig_dta, x="year_month_dt", y=term_prop_cols, title=fig_title)
+    fig = px.line(fig_dta, x="year_month_dt", y=term_col_names, title=fig_title)
     return fig, fig_title, fig_dta
 
 
@@ -73,12 +72,9 @@ def graph_terms_by_date_prop_companies(
     fig_dta = fig_dta.group_by(pl.col("year_month_dt")).sum().sort("year_month_dt")
     for term in term_col_names:
         if "count" in term:
-            fig_dta = fig_dta.with_columns(
-                (pl.col(term) / pl.col("word_count")).alias(f"{term.replace('_count', '_prop')}")
-            )
-    term_prop_cols = [term.replace("_count", "_prop") for term in term_col_names]
+            fig_dta = fig_dta.with_columns((pl.col(term) / pl.col("word_count")).alias(term))
     # st.write(fig_dta)  # TEMPPRINT:
-    fig = px.line(fig_dta, x="year_month_dt", y=term_prop_cols, title=fig_title)
+    fig = px.line(fig_dta, x="year_month_dt", y=term_col_names, title=fig_title)
     return fig, fig_title, fig_dta
 
 

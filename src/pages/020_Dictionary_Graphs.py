@@ -11,7 +11,6 @@ def get_posts_by_date(dta: pl.DataFrame) -> pl.DataFrame:
 
 def graph_post_by_date(fig_dta: pl.DataFrame):
     fig_title = "Posts by Date"
-    # fig = alt.Chart(fig_dta).mark_line().encode(x="year_month_dt", y="count", color="company_name")
     fig = px.line(fig_dta, x="year_month_dt", y="count", title="Posts by Date")
     return fig, fig_title, fig_dta
 
@@ -80,12 +79,11 @@ def graph_terms_by_date_prop(
         fig_dta = fig_dta.with_columns(
             (pl.col(term) / pl.col("word_count")).alias(f"{term.replace('_count', '_prop')}")
         )
-    term_prop_cols = [term.replace("_count", "_prop") for term in term_col_names]
     # st.write(fig_dta)  # TEMPPRINT:
     fig = px.line(
         fig_dta,
         x="year_month_dt",
-        y=term_prop_cols,
+        y=term_col_names,
         color_discrete_map=term_col_colors,
         title=fig_title,
     )
@@ -111,11 +109,10 @@ def graph_terms_by_date_prop_companies(
         fig_dta = fig_dta.with_columns(
             (pl.col(term) / pl.col("word_count")).alias(f"{term.replace('_count', '_prop')}")
         )
-    term_prop_cols = [term.replace("_count", "_prop") for term in term_col_names]
     fig = px.line(
         fig_dta,
         x="year_month_dt",
-        y=term_prop_cols,
+        y=term_col_names,
         color_discrete_map=term_col_colors,
         title=fig_title,
     )
