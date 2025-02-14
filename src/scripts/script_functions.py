@@ -740,7 +740,7 @@ def create_dictionary_dicts():
         },
         "CARBON CAPTURE": {
             "label": "Carbon Capture",
-            "dict_color": "#FFFF00",
+            "dict_color": "#000000",
             "terms": {
                 "global warming": "#FF0000",
                 "carbon sequestration": "#aa0000",
