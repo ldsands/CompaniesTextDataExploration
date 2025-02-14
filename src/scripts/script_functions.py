@@ -738,14 +738,6 @@ def create_dictionary_dicts():
                 "biofuels": "#006400",
             },
         },
-        "CLIMATE CHANGE SMALL": {
-            "label": "Climate Change Small",
-            "dict_color": "#009999",
-            "terms": {
-                "climate change": "#aa0000",
-                "global warming": "#00FF00",
-            },
-        },
         "CARBON CAPTURE": {
             "label": "Carbon Capture",
             "dict_color": "#FFFF00",
@@ -906,14 +898,14 @@ def get_dicts_combined_term_count(dta: pl.DataFrame, dictionary_dicts):
     for dict_key in dict_keys:
         combined_terms = dictionary_dicts[dict_key]["combined_terms"]
         dict_label = dictionary_dicts[dict_key]["label"]
-        term_col_colors.update({f"{dict_label} count": dictionary_dicts[dict_key]["dict_color"]})
-        term_col_names.append(f"{dict_label} count")
+        term_col_colors.update({f"{dict_label}": dictionary_dicts[dict_key]["dict_color"]})
+        term_col_names.append(f"{dict_label}")
         combined_terms = combined_terms.lower()
         dta = dta.with_columns(
             pl.col("clean_text")
             .str.count_matches(combined_terms)
             .cast(pl.Int32)
-            .alias(f"{dict_label} count")
+            .alias(f"{dict_label}")
         )
     # st.write(dta)  # TEMPPRINT:
     # st.write(term_col_names)  # TEMPPRINT:
@@ -945,11 +937,11 @@ def get_dict_term_count(dta: pl.DataFrame, dict_terms: list[str]) -> tuple[pl.Da
             pl.col("clean_text")
             .str.count_matches(target_term)
             .cast(pl.Int32)
-            .alias(f"{term}_count")
-            # pl.col("clean_text").str.contains(target_term).cast(pl.Int32).alias(f"{term}_count")
+            .alias(f"{term}")
+            # pl.col("clean_text").str.contains(target_term).cast(pl.Int32).alias(f"{term}")
         )
     # st.write(dta)  # TEMPPRINT:
-    term_col_names = [f"{term}_count" for term in dict_terms]
+    term_col_names = [f"{term}" for term in dict_terms]
     # st.write(term_col_names)  # TEMPPRINT:
     return dta, term_col_names
 
@@ -982,11 +974,11 @@ def get_term_count(dta: pl.DataFrame, term: str) -> tuple[pl.DataFrame, list[str
             pl.col("clean_text")
             .str.count_matches(target_term)
             .cast(pl.Int32)
-            .alias(f"{term}_count")
-            # pl.col("clean_text").str.contains(target_term).cast(pl.Int32).alias(f"{term}_count")
+            .alias(f"{term}")
+            # pl.col("clean_text").str.contains(target_term).cast(pl.Int32).alias(f"{term}")
         )
     # st.write(dta)  # TEMPPRINT:
-    term_col_names = [f"{term}_count" for term in target_terms]
+    term_col_names = [f"{term}" for term in target_terms]
     # st.write(term_col_names)  # TEMPPRINT:
     return dta, term_col_names
 
