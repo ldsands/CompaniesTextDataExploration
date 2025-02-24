@@ -2,6 +2,7 @@ import plotly.express as px
 import polars as pl
 import streamlit as st
 
+import scripts.company_functions as company_functs
 import scripts.script_functions as functs
 
 
@@ -119,6 +120,43 @@ def graph_terms_by_date_prop_companies(
     return fig, fig_title, fig_dta
 
 
+def graph_terms_by_date_prop_select_companies_dictionary(
+    fig_dta: pl.DataFrame,
+    term_col_names: list[str],
+    term_col_colors: dict,
+    companies_selection: list[str],
+    dict_selection_label: str,
+):
+    companies_selection_string = ", ".join(companies_selection)
+    fig_title = f"Terms by Date Proportion of Words in {dict_selection_label} Dictionary ({companies_selection_string})"
+    col_names = term_col_names.copy()
+    col_names.append("year_month_dt")
+    col_names.append("word_count")
+    col_names.append("company_name")
+    fig_dta = fig_dta.filter(pl.col("company_name").is_in(companies_selection))
+    fig_dta = fig_dta.select(pl.col(col_names))
+    fig_dta = (
+        fig_dta.group_by(pl.col("year_month_dt"), pl.col("company_name"))
+        .sum()
+        .sort("year_month_dt")
+    )
+    for term in term_col_names:
+        fig_dta = fig_dta.with_columns(
+            (pl.col(term) / pl.col("word_count")).alias(f"{term.replace('_count', '_prop')}")
+        )
+    fig = px.line(
+        fig_dta,
+        x="year_month_dt",
+        y=fig_dta[dict_selection_label],
+        color=fig_dta["company_name"],
+        color_discrete_map=company_functs.company_colors_dict(),
+        title=fig_title,
+    )
+    fig.update_yaxes(title_text="Proportion of Words in Dictionary")
+    fig.update_xaxes(title_text="Date by Month")
+    return fig, fig_title, fig_dta
+
+
 def graph_post_by_date_by_company(fig_dta: pl.DataFrame):
     fig_title = "Posts by Company by Date"
     fig = px.line(
@@ -198,6 +236,27 @@ def main() -> None:
         )
         st.plotly_chart(fig, use_container_width=True)
         display_graph_dta(fig_dta, fig_title)
+    st.write("### Companies by Dictionary Selection (Proportion of Words)")
+    companies_selection = st.segmented_control(
+        label="Select Companies to Include in Line Graphs",
+        options=dta["company_name"].unique().sort().to_list(),
+        selection_mode="multi",
+        key="prop_companies_dict_selection",
+        default=dta["company_name"].unique().sort().to_list()[0:2],
+    )
+    dict_selection = st.segmented_control(
+        label="Select Dictionary to Include in Line Graph",
+        options=dictionary_dicts.keys(),
+        selection_mode="single",
+        key="prop_dictionary_selection",
+        default=["CLIMATE CHANGE"],
+    )
+    dict_selection_label = dictionary_dicts[dict_selection]["label"]
+    fig, fig_title, fig_dta = graph_terms_by_date_prop_select_companies_dictionary(
+        dta, term_col_names, term_col_colors, companies_selection, dict_selection_label
+    )
+    st.plotly_chart(fig, use_container_width=True)
+    display_graph_dta(fig_dta, fig_title)
 
     st.sidebar.write(functs.print_updated_time())  # PROGRESSTRACKING:
     print(functs.print_updated_time())  # PROGRESSTRACKING:

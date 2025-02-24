@@ -1001,6 +1001,9 @@ def load_dta():
             pl.col("date").dt.strftime("%Y-%m").str.to_date(format="%Y-%m").alias("year_month_dt")
         )
         dta = dta.with_columns(pl.col("date").dt.year().cast(pl.Utf8).alias("year"))
+        dta = dta.with_columns(
+            pl.col("date").dt.strftime("%Y").str.to_date(format="%Y").alias("year_dt")
+        )
         dta = dta.with_columns(pl.col("date").dt.month().cast(pl.Utf8).alias("month"))
         return dta
         # return dta.with_columns(pl.col("date").dt.strftime("%Y-%m").alias("year_month").sort())
@@ -1098,6 +1101,24 @@ def get_word_count_by_month_by_company(dta: pl.DataFrame) -> pl.DataFrame:
     return dta
 
 
+def get_word_count_by_year_by_company(dta: pl.DataFrame) -> pl.DataFrame:
+    dta_count_year = dta.group_by(pl.col("year")).agg([pl.sum("word_count")])
+    dta_count_year = dta_count_year.sort("year")
+    dta_count_year = dta_count_year.rename({"word_count": "word_count_year"})
+    dta_count_year_company = dta.group_by(pl.col("year"), pl.col("company_name")).agg(
+        [pl.sum("word_count")]
+    )
+    dta_count_year_company = dta_count_year_company.sort("company_name", "year")
+    dta_count_year_company = dta_count_year_company.rename(
+        {"word_count": "word_count_year_company"}
+    )
+    dta = dta.join(dta_count_year, on=["year"], how="left")
+    dta = dta.join(dta_count_year_company, on=["year", "company_name"], how="left")
+    dta = dta.sort("company_name", "year")
+    # st.write(dta)  # TEMPPRINT:
+    return dta
+
+
 def get_term_counts_by_month_by_company(dta: pl.DataFrame, target_term: str) -> pl.DataFrame:
     dta = dta.filter(pl.col("clean_text").str.contains(target_term))
     dta_count_month = dta.group_by(pl.col("year_month")).agg([pl.sum("word_count")])
@@ -1113,6 +1134,24 @@ def get_term_counts_by_month_by_company(dta: pl.DataFrame, target_term: str) -> 
     dta = dta.join(dta_count_month, on=["year_month"], how="left")
     dta = dta.join(dta_count_month_company, on=["year_month", "company_name"], how="left")
     dta = dta.sort("company_name", "year_month")
+    return dta
+
+
+def get_term_counts_by_year_by_company(dta: pl.DataFrame, target_term: str) -> pl.DataFrame:
+    dta = dta.filter(pl.col("clean_text").str.contains(target_term))
+    dta_count_year = dta.group_by(pl.col("year")).agg([pl.sum("word_count")])
+    dta_count_year = dta_count_year.sort("year")
+    dta_count_year = dta_count_year.rename({"word_count": "word_count_month"})
+    dta_count_year_company = dta.group_by(pl.col("year"), pl.col("company_name")).agg(
+        [pl.sum("word_count")]
+    )
+    dta_count_year_company = dta_count_year_company.sort("company_name", "year")
+    dta_count_year_company = dta_count_year_company.rename(
+        {"word_count": "word_count_month_company"}
+    )
+    dta = dta.join(dta_count_year, on=["year"], how="left")
+    dta = dta.join(dta_count_year_company, on=["year", "company_name"], how="left")
+    dta = dta.sort("company_name", "year")
     return dta
 
 
