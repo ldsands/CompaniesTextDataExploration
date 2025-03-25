@@ -2,6 +2,7 @@ import plotly.express as px
 import polars as pl
 import streamlit as st
 
+import scripts.company_functions as company_functs
 import scripts.script_functions as functs
 
 
@@ -43,7 +44,14 @@ def get_posts_by_date_by_company(dta: pl.DataFrame) -> pl.DataFrame:
 def graph_post_by_date_by_company(fig_dta: pl.DataFrame):
     fig_title = "Posts by Company by Date"
     # fig = alt.Chart(fig_dta).mark_line().encode(x="year_month_dt", y="count", color="company_name")
-    fig = px.line(fig_dta, x="year_month_dt", y="count", color="company_name", title=fig_title)
+    fig = px.line(
+        fig_dta,
+        x="year_month_dt",
+        y="count",
+        color="company_name",
+        title=fig_title,
+        color_discrete_map=company_functs.company_colors_dict(),
+    )
     return fig, fig_title, fig_dta
 
 
